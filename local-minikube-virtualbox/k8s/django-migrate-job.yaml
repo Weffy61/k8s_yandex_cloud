@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-migrate-job
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 60
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      containers:
+      - name: django
+        image: weffy/django_app:latest
+        envFrom:
+          - secretRef:
+              name: django-secret
+        command: ["./manage.py", "migrate", "--noinput"]
+      restartPolicy: Never
