@@ -91,7 +91,7 @@ $ docker compose build web
 Для создания манифеста с вашим secret выполните:
 
 ```shell
-python3 secret.py
+python3 local-minikube-virtualbox/secret.py
 ```
 Если какие-либо значения изменятся, требуется повторно выполнить данную команду.
 
@@ -100,14 +100,14 @@ python3 secret.py
 Выполните команды:
 
 ```shell
- kubectl apply -f k8s
+ kubectl apply -f local-minikube-virtualbox/k8s
  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
 ```
 
 Для выполнения миграции выполните команду:
 
 ```shell
-kubectl apply -f k8s/django-migrate-job.yaml
+kubectl apply -f local-minikube-virtualbox/k8s/django-migrate-job.yaml
 ```
 
 #### Minikube
@@ -124,3 +124,38 @@ minikube addons enable ingress
 ```shell
 minikube ip
 ```
+
+### Развертывание в Yandex Cloud
+Данный подразумевает, что у вас имеется доступ к необходимым сервисам [Yandex Cloud](https://cloud.yandex.ru/).
+
+#### Развертывание тестового сервиса
+
+У вас должен быть создан Application Load Balancer. В приведенном нижее манифесте используется порт `30401` с 
+разворачиваемым сервисом `nginx`.
+
+```shell
+ kubectl apply -f test-nginx-edu-angry-sammet
+```
+
+### Как подготовить dev окружение
+
+PostgreSQL-хосты с публичным доступом поддерживают только шифрованные соединения. 
+Чтобы использовать их, получите SSL-сертификат:
+
+```shell
+mkdir -p ~/.postgresql && \
+wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" \
+     --output-document ~/.postgresql/root.crt && \
+chmod 0600 ~/.postgresql/root.crt
+```
+
+Сертификат будет сохранен в файле ~/.postgresql/root.crt. 
+[Подробнее](https://cloud.yandex.ru/ru/docs/managed-postgresql/operations/connect#get-ssl-cert)
+
+Скопируйте `root.crt` в корневую дирректорию репозитория. Выполните команду: 
+
+```shell
+python3 cert_secret.py
+```
+
+Будет создан секрет в вашем k8s.
