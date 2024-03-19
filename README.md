@@ -159,3 +159,38 @@ python3 cert_secret.py
 ```
 
 Будет создан секрет в вашем k8s.
+
+### Создание образа на Dockerhub
+
+Примечание: вы должны быть зарегистрированы на [docker hub](https://hub.docker.com/).
+
+Перейдит в необходимую директорию:
+
+```shell
+cd local-django
+```
+
+Создайте image выполнив команнду:
+
+```shell
+docker build -t image-name:tag .
+```
+Где:
+
+image-name - наименование образа.  
+tag - тег вашего образа.  
+
+[Подробнее](https://docs.docker.com/reference/cli/docker/image/build/)
+
+Для переименования для последующего пуша образа используюется следующая команда:
+
+```shell
+docker tag image_name your_repository_name/your_image_name:tag
+```
+
+Для пуша используйте следующую команду:
+
+```shell
+docker push your_repository_name/your_image_name:tag
+```
+
