@@ -3,7 +3,7 @@ import base64
 
 def read_env():
     env_vars = {}
-    with open('.env', 'r') as file:
+    with open('../.env', 'r') as file:
         for variable in file:
             key, value = variable.strip().split('=', 1)
             env_vars[key] = base64.b64encode(value.encode()).decode()
@@ -12,7 +12,7 @@ def read_env():
 
 def write_k8s_manifest():
     encoded_vars = read_env()
-    with open('../local-minikube-virtualbox/k8s/django-secret.yaml', 'w') as f:
+    with open('django-secret.yaml', 'w') as f:
         f.write('apiVersion: v1\n')
         f.write('kind: Secret\n')
         f.write('metadata:\n')
