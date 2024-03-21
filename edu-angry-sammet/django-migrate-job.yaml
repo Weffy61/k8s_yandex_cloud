@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-migrate-job
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 60
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      containers:
+      - name: django
+        image: weffy/django_app:04d9ce9c0ccdfd06ffeb6acf271a08bf88055d4e
+        envFrom:
+          - secretRef:
+              name: django-secret
+        command: ["./manage.py", "migrate", "--noinput"]
+        volumeMounts:
+        - name: postgres-ssl-cert
+          mountPath: /root/.postgresql
+      volumes:
+      - name: postgres-ssl-cert
+        secret:
+          secretName: postgres-ssl-key
+      restartPolicy: Never

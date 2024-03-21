@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-deployment
+  labels:
+    app: django-k8s-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: django-web-app
+  template:
+    metadata:
+      labels:
+        project: django-web-app
+    spec:
+      volumes:
+        - name: postgres-key
+          secret:
+            secretName: postgres-ssl-key
+            defaultMode: 384
+      containers:
+      - name: django
+        image: weffy/django_app:04d9ce9c0ccdfd06ffeb6acf271a08bf88055d4e
+        ports:
+          - containerPort: 80
+        envFrom:
+          - secretRef:
+              name: django-secret
+        volumeMounts:
+          - name: postgres-key
+            readOnly: true
+            mountPath: "/root/.postgresql/"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+  labels:
+    app: django
+spec:
+  type: NodePort
+  selector:
+    project: django-web-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30401
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: django-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+    - host: edu-angry-sammet.sirius-k8s.dvmn.org
+      http:
+        paths:
+        - pathType: Prefix
+          path: /
+          backend:
+            service:
+              name: django-service
+              port:
+                number: 80

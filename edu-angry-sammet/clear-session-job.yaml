@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: clearsessions-cronjob
+spec:
+  startingDeadlineSeconds: 3600
+  schedule: "0 0 1 * *"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 100
+      template:
+        spec:
+          containers:
+          - name: django-clearsessions
+            image: weffy/django_app:latest
+            envFrom:
+              - secretRef:
+                  name: django-secret
+            command:
+            - python3
+            - manage.py
+            - clearsessions
+          restartPolicy: OnFailure
