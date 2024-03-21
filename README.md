@@ -137,29 +137,6 @@ minikube ip
  kubectl apply -f test-nginx-edu-angry-sammet
 ```
 
-### Как подготовить dev окружение
-
-PostgreSQL-хосты с публичным доступом поддерживают только шифрованные соединения. 
-Чтобы использовать их, получите SSL-сертификат:
-
-```shell
-mkdir -p ~/.postgresql && \
-wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" \
-     --output-document ~/.postgresql/root.crt && \
-chmod 0600 ~/.postgresql/root.crt
-```
-
-Сертификат будет сохранен в файле ~/.postgresql/root.crt. 
-[Подробнее](https://cloud.yandex.ru/ru/docs/managed-postgresql/operations/connect#get-ssl-cert)
-
-Скопируйте `root.crt` в корневую дирректорию репозитория. Выполните команду: 
-
-```shell
-python3 cert_secret.py
-```
-
-Будет создан секрет в вашем k8s.
-
 ### Создание образа на Dockerhub
 
 Примечание: вы должны быть зарегистрированы на [docker hub](https://hub.docker.com/).
@@ -193,4 +170,61 @@ docker tag image_name your_repository_name/your_image_name:tag
 ```shell
 docker push your_repository_name/your_image_name:tag
 ```
+
+### Подготовка dev окружения
+
+PostgreSQL-хосты с публичным доступом поддерживают только шифрованные соединения. 
+Чтобы использовать их, получите SSL-сертификат:
+
+```shell
+mkdir -p ~/.postgresql && \
+wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" \
+     --output-document ~/.postgresql/root.crt && \
+chmod 0600 ~/.postgresql/root.crt
+```
+
+Сертификат будет сохранен в файле ~/.postgresql/root.crt. 
+[Подробнее](https://cloud.yandex.ru/ru/docs/managed-postgresql/operations/connect#get-ssl-cert)
+
+Скопируйте `root.crt` в корневую дирректорию репозитория. Выполните команду: 
+
+```shell
+python3 edu-angry-sammet/cert_secret.py
+```
+
+Будет создан секрет в вашем k8s.
+
+Заполните файл `env` необходимыми данными, а именно:
+
+`SECRET_KEY` -- обязательная секретная настройка Django. Это соль для генерации хэшей. Значение может быть любым, важно лишь, чтобы оно никому не было известно. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key).
+
+`DEBUG` -- настройка Django для включения отладочного режима. Принимает значения `TRUE` или `FALSE`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#std:setting-DEBUG).
+
+`ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
+
+`DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+
+Для создания манифеста секрета с файла .env используйте команду:
+
+```shell
+python3 edu-angry-sammet/secret.py --path
+```
+Аргументы:
+
+- --path - путь к директории с вашими файлами манифестами окружения, по-умолчанию сохранится в корневую директорию проекта.
+
+Для запуска подов выполните команду:
+
+```shell
+ kubectl apply -f edu-angry-sammet/
+```
+
+Для применения новых миграций выполните:
+
+```shell
+ kubectl apply -f edu-angry-sammet/django-migrate-job.yaml
+```
+
+
+
 
