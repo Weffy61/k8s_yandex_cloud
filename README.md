@@ -225,6 +225,5 @@ python3 edu-angry-sammet/secret.py --path
  kubectl apply -f edu-angry-sammet/django-migrate-job.yaml
 ```
 
-
-
-
+Работающая версия сайта:
+https://edu-angry-sammet.sirius-k8s.dvmn.org/
